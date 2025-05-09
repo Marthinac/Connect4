@@ -1,5 +1,3 @@
-
-
 # Constantes
 ROWS: int = 6
 COLS: int = 7
@@ -13,6 +11,7 @@ class Board:
     def __init__(self):
         self.board: list[list[int]] = [[EMPTY for _ in range(COLS)] for _ in range(ROWS)]
         self.current_player: int = PLAYER_X
+        self.winner = None
 
 
     def reset(self):
@@ -28,7 +27,6 @@ class Board:
 
     def apply_move(self, column: int):
         """Solta peça na *column*.
-
         Levanta ``ValueError`` se coluna inválida ou cheia.
         Alterna ``current_player`` após inserir.
         """
@@ -43,6 +41,7 @@ class Board:
                 break
 
         self.current_player = PLAYER_X if self.current_player == PLAYER_O else PLAYER_O
+        self.winner = self.check_win()
 
     def check_win(self) -> int | None:
         """Retorna 1 ou 2 se alguém ganhou; caso contrário ``None``."""
@@ -59,6 +58,16 @@ class Board:
         """True se não restam movimentos válidos."""
         return all(self.board[0][c] != EMPTY for c in range(COLS))
 
+    def is_game_over(self):
+        return self.winner is not None or self.is_full()
+
+    def is_draw(self):
+        return self.is_full() and self.winner is None
+
+    def get_winner(self) -> int | None:
+        """Retorna o jogador vencedor (1 ou 2) ou None se não houver vencedor."""
+        return self.winner
+
     def copy(self) -> "Board":
         """Cópia profunda – usada pelo MCTS para simulações."""
         new = Board()
@@ -70,14 +79,21 @@ class Board:
         """Converte o estado em lista 1‑D de 42 inteiros (para ID3)."""
         return [cell for row in self.board for cell in row]
 
-    # ------------------------------------------------------------------
     # Visualização
-    # ------------------------------------------------------------------
     def render(self) -> str:
         symbols = {EMPTY: ".", PLAYER_X: "X", PLAYER_O: "O"}
         lines = [" ".join(symbols[cell] for cell in row) for row in self.board]
         header = " ".join(str(c) for c in range(COLS))
         return "\n".join(lines) + "\n" + header
+
+    def display(self):
+        """Exibe o tabuleiro atual no console."""
+        print(self.render())
+
+        # Exibir APENAS o próximo jogador, NÃO mostrar o resultado do jogo
+        if not self.is_game_over():
+            player_name = "X" if self.current_player == PLAYER_X else "O"
+            print(f"Vez do jogador {player_name}")
 
     def __str__(self) -> str:  # noqa: DunderStr
         return self.render()
