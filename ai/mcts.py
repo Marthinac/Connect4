@@ -1,173 +1,92 @@
-"""
-Monte Carlo Tree Search (MCTS) Simplificado
-Implementação didática ultra-compacta para jogos
-"""
+# ai/mcts.py
 
 import math
 import random
-
+from typing import Optional
 
 from game.board import Board
 
+class Node:
+    def __init__(self, board: Board, parent: Optional["Node"] = None, move: Optional[int] = None):
+        self.board = board
+        self.parent = parent
+        self.move = move  # coluna (0–6) que levou a este estado
+        self.children: list[Node] = []
+        self.wins: float = 0.0
+        self.visits: int = 0
+        # movimentos ainda não expandidos a partir deste nó
+        self.untried_moves: list[int] = board.valid_moves()
+
+    def uct_select_child(self, exploration_weight: float) -> "Node":
+        """Seleciona o filho com maior valor UCT."""
+        log_parent_visits = math.log(self.visits)
+        best_score = -float('inf')
+        best_child = None
+        for child in self.children:
+            # exploitation + exploration
+            score = (child.wins / child.visits) + exploration_weight * math.sqrt(log_parent_visits / child.visits)
+            if score > best_score:
+                best_score = score
+                best_child = child
+        return best_child
 
 class MCTS:
-    """
-    Implementação simplificada do algoritmo Monte Carlo Tree Search.
-    """
-    
-    class Node:
-        """Nó da árvore de busca do MCTS"""
-        
-        def __init__(self, game_state, move=None, parent=None):
-            """
-            Inicializa um nó do MCTS
-            
-            Args:
-                game_state: Estado atual do jogo
-                move: Jogada que levou a este estado (None para o nó raiz)
-                parent: Nó pai (None para o nó raiz)
-            """
-            self.game = game_state.copy()
-            self.move = move
-            self.parent = parent
-            self.children = []
-            self.visits = 0
-            self.wins = 0.0
-            self.untried_moves = game_state.valid_moves()
-
-
-        # A teoria de bandits, para recompensas normalizadas em [0,1] sugere Raiz de 2
-        # para garantir um bom trade-off entre exploração e aproveitamento.
-        def ucb(self, exploration_cof=1.41) -> float:
-            """Calcula o valor UCB (Upper Confidence Bound)"""
-            if self.visits == 0:
-                return float('inf')
-            
-            exploitation = self.wins / self.visits
-            exploration = exploration_cof * math.sqrt(math.log(self.parent.visits) / self.visits)
-            return exploitation + exploration
-        
-        def select_child(self) -> 'MCTS.Node':
-            """Seleciona o filho com maior valor UCB"""
-            return max(self.children, key=lambda child: child.ucb())
-        
-        def expand(self) -> 'MCTS.Node':
-            """Adiciona um novo filho escolhendo uma jogada não testada"""
-            move = random.choice(self.untried_moves)
-            self.untried_moves.remove(move)
-            
-            new_game = self.game.copy()
-            new_game.make_move(move)
-            
-            child = MCTS.Node(new_game, move, self)
-            self.children.append(child)
-            return child
-
-        def find_winning_move(self,board: Board, player: int) -> int | None:
-            for col in board.valid_moves():
-                copy = board.copy()
-                copy.apply_move(col)
-                if copy.get_winner() == player:
-                    return col
-            return None
-
-        def simulate(self) -> float:
-            """Simula um jogo até o final com jogadas aleatórias"""
-            sim_game = self.game.copy()
-            player = sim_game.current_player
-            
-            # Simula jogadas aleatórias até o fim do jogo
-            while not sim_game.is_game_over():
-                moves = sim_game.valid_moves()
-                if not moves:
-                    break
-                # Heuristica Para reduzir tamanho MCTree, reduz buscas sempre buscando jogadas vencedoras
-                win = self.find_winning_move(sim_game, player)
-                if win is not None:
-                    move = win
-                else:
-                    move = random.choice(moves)
-                sim_game.make_move(move)
-
-            # Avalia o resultado
-            winner = sim_game.get_winner()
-            if winner == player:
-                return 1.0  # Vitória
-            elif winner is None:
-                return 0.5  # Empate
-            return 0.0  # Derrota
-
-
-        def backpropagate(self, result: float):
-            """Propaga o resultado pela árvore"""
-            self.visits += 1
-            self.wins += result
-            if self.parent:
-                self.parent.backpropagate(1.0 - result)
-    
-    def __init__(self, iterations=1000, time_limit: None = None | float, exploration_cof=1.41 ) -> None:
+    def __init__(self, iterations: int = 1000, exploration_weight: float = math.sqrt(2)):
         """
-        Inicializa o algoritmo MCTS
-        
-        Args:
-            iterations: Número máximo de iterações
-            time_limit: Tempo máximo em segundos (None para usar apenas iterações)
+        :param iterations: número de simulações MCTS
+        :param exploration_weight: coeficiente de exploração (c)
         """
         self.iterations = iterations
-        self.time_limit = time_limit
-        self.exploration = exploration_cof
+        self.exploration_weight = exploration_weight
 
-    
-    def best_move(self, game_state) -> int:
+    def best_move(self, root_board: Board) -> int:
         """
-        Encontra a melhor jogada para o estado atual do jogo
-        
-        Args:
-            game_state: Estado atual do jogo
-            
-        Returns:
-            A melhor jogada segundo o MCTS
+        Executa MCTS a partir de root_board e retorna a coluna (0–6) do melhor movimento.
         """
-        # Cria o nó raiz
-        root = self.Node(game_state)
-        iterations_done = 0
-        
-        # Executa o algoritmo MCTS
-        while iterations_done < self.iterations:
-            iterations_done += 1
-            
-            # Fase 1: Seleção
-            node = root
+        root_node = Node(root_board.copy())
+        # quem está jogando no estado raiz
+        self.player = root_board.current_player
+
+        for _ in range(self.iterations):
+            node = root_node
+            board_copy = root_board.copy()
+
+            # 1) Seleção
             while not node.untried_moves and node.children:
-                node = node.select_child()
-            
-            # Fase 2: Expansão
+                node = node.uct_select_child(self.exploration_weight)
+                board_copy.apply_move(node.move)
+
+            # 2) Expansão
             if node.untried_moves:
-                node = node.expand()
-            
-            # Fase 3: Simulação
-            result = node.simulate()
-            
-            # Fase 4: Retropropagação
-            node.backpropagate(result)
+                m = random.choice(node.untried_moves)
+                board_copy.apply_move(m)
+                node.untried_moves.remove(m)
+                child = Node(board_copy.copy(), parent=node, move=m)
+                node.children.append(child)
+                node = child
 
-        # Se o nó-raiz não tiver filhos, significa que:
-        # 1) O estado inicial já era terminal (p.ex. jogo acabou),
-        # 2) Ou não houve nenhuma iteração de MCTS (iterations == 0),
-        # então não há “melhor filho” para escolher — caímos num fallback:
-        if not root.children:
-            # Escolhe aleatoriamente qualquer movimento válido do tabuleiro
-            # Isso evita erro de max() em lista vazia e garante que
-            # sempre retornamos algo legal.
-            return random.choice(game_state.valid_moves())
+            # 3) Simulação (rollout)
+            winner = self._rollout(board_copy.copy())
 
-        # max(..., key=lambda child: child.visits)
-        # Varre todos os filhos do nó-raiz e devolve aquele com o maior
-        # número de visitas (visits). Esse é o critério chamado “robust child”:
-        # escolhemos a jogada mais explorada pelas simulações,
-        # pois tendem a ser as mais confiáveis.
-        best_child = max(root.children, key=lambda child: child.visits)
+            # 4) Retropagação
+            while node is not None:
+                node.visits += 1
+                if winner == self.player:
+                    node.wins += 1
+                elif winner is None:
+                    node.wins += 0.5  # empate vale meio ponto
+                node = node.parent
 
-        # Cada filho guarda em .move qual movimento (coluna) levou
-        # da raiz até ele. Aqui retornamos essa coluna “vencedora”:
+        # Escolhe como melhor o filho com mais visitas
+        best_child = max(root_node.children, key=lambda c: c.visits)
         return best_child.move
+
+    def _rollout(self, board: Board) -> Optional[int]:
+        """
+        Joga aleatoriamente até o fim e retorna o vencedor (1, 2 ou None).
+        """
+        while not board.is_game_over():
+            moves = board.valid_moves()
+            m = random.choice(moves)
+            board.apply_move(m)
+        return board.get_winner()
