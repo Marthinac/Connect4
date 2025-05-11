@@ -1,6 +1,6 @@
 from ai.mcts import MCTS
-from game import Game
-from ui import UI
+from game.game import Game
+from game.ui import UI
 
 
 def mcts_ai(game_state):
@@ -28,12 +28,12 @@ def main():
     elif mode == 2:  # Humano vs IA
         agentes = {
             1: ui.get_move,
-            2: mcts_ai(game)
+            2: lambda : mcts_ai(game)
         }
     else:  # IA vs IA
         agentes = {
-            1: mcts_ai(game),
-            2: random_ai
+            1: lambda : mcts_ai(game),
+            2: lambda : random_ai
         }
     # Só pergunta nome se houver algum jogador humano
     if mode != 3:

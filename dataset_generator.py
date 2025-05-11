@@ -1,38 +1,67 @@
+# dataset_generator.py
+import csv, os, sys, time
+from multiprocessing import Pool, cpu_count
 
-import csv, os, sys, random, time
-sys.path.append(os.path.dirname(__file__))           # raiz do projecto
-from game.game import Game                                # nossa lógica de jogo
-from ai.mcts import MCTS                                # busca adversária
+sys.path.append(os.path.dirname(__file__))       # raiz do projecto
+from game.game import Game                        # nossa lógica de jogo
+from ai.mcts import MCTS                              # busca adversária
 
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
+def gerar_jogo(args):
+    """
+    Função executada em cada processo:
+    simula uma partida completa usando MCTS e
+    retorna todas as linhas [42 estados + movimento].
+    """
+    iters, _ = args
+    engine = MCTS(iterations=iters)
+    game   = Game()
+    linhas = []
+    while game.is_active():
+        estado   = game.board.to_feature_vector()
+        movimento = engine.best_move(game.board)
+        linhas.append(estado + [movimento])
+        game.make_move(movimento)
+    return linhas
 
 def generate_dataset(n_games: int = 1_000,
-                     iters: 500 = 500,
-                     out_file: str = "data/connect4_dataset.csv") -> None:
+                     iters:    int = 500,
+                     out_file: str = "connect4_dataset.csv") -> None:
     """
-    Gera *n_games* partidas Connect-Four por auto-jogo MCTS
-    e grava (estado, movimento recomendado) em CSV.
-
-    Cada linha tem 42 colunas chamadas cell_0 … cell_41
-    + coluna 'move' com o número da coluna (0-6).
+    Gera n_games partidas Connect-Four por auto-jogo MCTS
+    em paralelo usando todos os núcleos disponíveis,
+    e grava (estado, movimento) em CSV.
     """
-    mcts_engine = MCTS(iterations=iters)
+    path = os.path.join(DATA_DIR, out_file)
 
-    with open(out_file, "w", newline="") as f:
+    # Cria o CSV com o cabeçalho
+    with open(path, "w", newline="") as f:
         writer = csv.writer(f)
         header = [f"cell_{i}" for i in range(42)] + ["move"]
         writer.writerow(header)
 
-        for g in range(n_games):
-            game = Game()                # novo tabuleiro
-            while game.is_active():
-                state_vec = game.board.to_feature_vector()
-                best = mcts_engine.best_move(game.board)
-                writer.writerow(state_vec + [best])
-                game.make_move(best)     # aplica jogada
-            if g % 100 == 0:
-                print(f"[{time.strftime('%H:%M:%S')}] jogo {g}/{n_games}")
+    # Prepara o pool de processos
+    n_processes = cpu_count()  # aproveita todos os núcleos
+    pool = Pool(processes=n_processes)
+    print(f"🧵 Iniciando geração em paralelo com {n_processes} processos...")
 
-    print(f" Dataset salvo em {out_file}")
+    # mapeia cada tarefa (iters, idx) para um processo
+    # usamos enumerate só para feedback de progresso
+    for idx, linhas in enumerate(pool.imap(gerar_jogo, [(iters, i) for i in range(n_games)], chunksize=1), start=1):
+        # abre em append e escreve todas as linhas desse jogo
+        with open(path, "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerows(linhas)
+
+        if idx % 100 == 0:
+            print(f"[{time.strftime('%H:%M:%S')}] completos {idx}/{n_games} jogos")
+
+    pool.close()
+    pool.join()
+
+    print(f"✅ Dataset paralelo salvo em: {path}")
 
 if __name__ == "__main__":
     generate_dataset()
