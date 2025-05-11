@@ -25,12 +25,18 @@ class Board:
         """Colunas (0‑6) onde a primeira linha ainda está vazia."""
         return [c for c in range(COLS) if self.board[0][c] == EMPTY]
 
+    def make_move(self, column: int) -> None:
+        """
+        alias function para padronizar em board e game
+        """
+        self.apply_move(column)
+
     def apply_move(self, column: int):
         """Solta peça na *column*.
         Levanta ``ValueError`` se coluna inválida ou cheia.
         Alterna ``current_player`` após inserir.
         """
-        if column < 0 or column >= COLS:
+        if column not in range(COLS):
             raise ValueError("Coluna fora do intervalo 0‑6.")
         if self.board[0][column] != EMPTY:
             raise ValueError("Coluna cheia – escolha outra.")
@@ -73,6 +79,7 @@ class Board:
         new = Board()
         new.board = [row[:] for row in self.board]
         new.current_player = self.current_player
+        new.winner = self.winner          # <-- correcção crucial
         return new
 
     def to_feature_vector(self) -> list[int]:

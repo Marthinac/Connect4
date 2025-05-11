@@ -1,6 +1,11 @@
+from ai.mcts import MCTS
 from game import Game
 from ui import UI
-import time
+
+
+def mcts_ai(game_state):
+    mcts = MCTS(iterations=1000)
+    return mcts.best_move(game_state.board)
 
 def main():
     """
@@ -23,11 +28,11 @@ def main():
     elif mode == 2:  # Humano vs IA
         agentes = {
             1: ui.get_move,
-            2: random_ai
+            2: mcts_ai(game)
         }
     else:  # IA vs IA
         agentes = {
-            1: random_ai,
+            1: mcts_ai(game),
             2: random_ai
         }
     # Só pergunta nome se houver algum jogador humano
@@ -39,9 +44,7 @@ def main():
         # Exibir o estado atual
         ui.display_game()
         # Solicitar movimento
-        move = ui.get_move()
-
-
+        move = agentes[game.board.current_player]()  # agente certo
         # Aplicar o movimento
         try:
             game.make_move(move)
@@ -51,6 +54,7 @@ def main():
     ui.display_game()
 
     print("\nObrigado por jogar Connect Four!")
+
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,5 @@
-import time
-from typing import Dict, List, Optional
-from board import Board, PLAYER_X, PLAYER_O
+from typing import List, Optional
+from game.board import Board, PLAYER_X, PLAYER_O
 
 
 class Game:
