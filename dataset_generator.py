@@ -38,7 +38,7 @@ def gerar_jogo(args: Tuple[int, Optional[int]]) -> List[List[int]]:
 
 def generate_dataset(
     n_games: int = 1000,
-    iterations: int = 500,
+    iterations: int = 10000,
     k: Optional[int] = None,
     out_file: str = "connect4_dataset.csv"
 ) -> None:
