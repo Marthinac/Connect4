@@ -81,4 +81,4 @@ def generate_dataset(
 
 if __name__ == "__main__":
     # Exemplo de uso básico; altera k conforme desejado
-    generate_dataset(n_games=3000, iterations=600, k=5)  # k=None expande todos os filhos
+    generate_dataset(n_games=1000, iterations=10000)  # k=None expande todos os filhos

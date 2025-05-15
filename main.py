@@ -1,7 +1,38 @@
+import os
+import sys
+import pickle
+import pandas as pd
+
+# Adiciona o caminho da pasta "ai" ao sys.path para garantir a importação
+sys.path.append(os.path.join(os.path.dirname(__file__), "ai"))
+
 from ai.mcts import MCTS
 from game.game import Game
 from game.ui import UI
+from ai.id3 import ID3Tree
 
+def load_id3_model():
+    """
+    Carrega o modelo ID3 previamente treinado.
+    """
+    model_path = os.path.join(os.path.dirname(__file__), "ai", "models", "id3_model.pkl")
+    try:
+        with open(model_path, "rb") as file:
+            model = pickle.load(file)
+        print("Modelo ID3 carregado com sucesso!")
+        return model
+    except FileNotFoundError:
+        print("Erro: Modelo ID3 não encontrado!")
+        sys.exit(1)
+
+def id3_ai(game_state, id3_model):
+    """
+    Faz a jogada utilizando o modelo ID3.
+    """
+    board_state = game_state.board.to_feature_vector()
+    board_df = pd.DataFrame([board_state], columns=[f'cell_{i}' for i in range(42)])
+    prediction = id3_model.predict(board_df)
+    return int(prediction[0])
 
 def mcts_ai(game_state):
     mcts = MCTS(iterations=1000)
@@ -12,6 +43,10 @@ def main():
     Função principal que inicia o jogo Connect Four.
     Gerencia o fluxo principal do jogo e a interação entre as classes Game e UI.
     """
+    
+     # Carregar o modelo ID3 uma única vez
+    id3_model = load_id3_model()
+    
     # Inicializar o jogo e a interface
     game = Game()
     ui = UI(game)
@@ -33,8 +68,9 @@ def main():
     else:  # IA vs IA
         agentes = {
             1: lambda : mcts_ai(game),
-            2: lambda : random_ai
+            2: lambda : id3_ai(game, id3_model)
         }
+        
     # Só pergunta nome se houver algum jogador humano
     if mode != 3:
         ui.get_player_names(mode)
