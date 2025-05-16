@@ -2,40 +2,33 @@ import os
 import sys
 import pickle
 import pandas as pd
-
-# Adiciona o caminho da pasta "ai" ao sys.path para garantir a importação
-sys.path.append(os.path.join(os.path.dirname(__file__), "ai"))
-
 from ai.mcts import MCTS
 from game.game import Game
 from game.ui import UI
-from ai.id3 import ID3Tree
 
+sys.path.append(os.path.join(os.path.dirname(__file__), "ai"))
+
+#Carrega o Modelo treinado
 def load_id3_model():
-    """
-    Carrega o modelo ID3 previamente treinado.
-    """
-    model_path = os.path.join(os.path.dirname(__file__), "ai", "models", "id3_model.pkl")
+    model_path = os.path.join("ai/models/id3_model.pkl")
     try:
         with open(model_path, "rb") as file:
             model = pickle.load(file)
-        print("Modelo ID3 carregado com sucesso!")
         return model
     except FileNotFoundError:
         print("Erro: Modelo ID3 não encontrado!")
         sys.exit(1)
 
+# Lê o Estado do Jogo e com base nesse estado usa o modelo para prever e devolver o melhor movimento
 def id3_ai(game_state, id3_model):
-    """
-    Faz a jogada utilizando o modelo ID3.
-    """
     board_state = game_state.board.to_feature_vector()
     board_df = pd.DataFrame([board_state], columns=[f'cell_{i}' for i in range(42)])
     prediction = id3_model.predict(board_df)
     return int(prediction[0])
 
+#Instancia o Monte Carlo e com base no estado do board devolve a jogada considerada ótima
 def mcts_ai(game_state):
-    mcts = MCTS(iterations=1000)
+    mcts = MCTS(iterations=300)
     return mcts.best_move(game_state.board)
 
 def main():
@@ -44,10 +37,10 @@ def main():
     Gerencia o fluxo principal do jogo e a interação entre as classes Game e UI.
     """
     
-     # Carregar o modelo ID3 uma única vez
+     # Carregar o modelo ID3
     id3_model = load_id3_model()
     
-    # Inicializar o jogo e a interface
+    # Inicializar jogo e interface
     game = Game()
     ui = UI(game)
     
@@ -55,11 +48,11 @@ def main():
     ui.print_welcome()
     mode = ui.get_game_mode()
     if mode == 1:  # Humano vs Humano
+        # Utilizado Dicionario para mapear a função que seleciona a jogada
         agentes = {
             1: ui.get_move,
             2: ui.get_move
         }
-    # Quando tivermos o algoritmo da IA pronto vai ser trocado random_ai por algo como mctr.get_move()
     elif mode == 2:  # Humano vs IA
         agentes = {
             1: ui.get_move,

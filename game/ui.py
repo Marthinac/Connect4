@@ -9,13 +9,13 @@ class UI:
     """
     def __init__(self, game):
         self.game = game
-        
+
+    # Clear do Console
     def clear_screen(self):
-        """Limpa a tela do console."""
         os.system('cls' if os.name == 'nt' else 'clear')
-        
+
+    # Exibe boas-vindas e regras do jogo
     def print_welcome(self):
-        """Exibe mensagem de boas-vindas e regras do jogo."""
         self.clear_screen()
         print("=" * 56)
         print("       BEM-VINDO AO JOGO CONNECT FOUR (CONECTA 4)       ")
@@ -28,9 +28,8 @@ class UI:
         print("\nControles:")
         print("- Digite o número da coluna (0-6) para colocar uma peça")
 
-        
+    # Solicita nome dos jogadores
     def get_player_names(self, mode: int):
-        """Solicita os nomes dos jogadores e os configura no jogo."""
         self.clear_screen()
         print("Configuração dos Jogadores\n")
         if mode == 1:
@@ -45,14 +44,8 @@ class UI:
 
         self.game.set_player_names(player_x, player_o)
 
+    # Solicita o modo de jogo(PvP, PvIA, IAvIA)
     def get_game_mode(self) -> int:
-        """
-        Pergunta qual o modo de jogo:
-         1 - Humano vs Humano
-         2 - Humano vs Computador
-         3 - Computador vs Computador
-        Retorna 1, 2 ou 3.
-        """
         self.clear_screen()
         print("Selecione o modo de jogo:")
         print(" 1 - Humano vs Humano")
@@ -64,13 +57,8 @@ class UI:
                 return int(choose)
             print("Opção inválida. Digite 1, 2 ou 3.")
 
+    # Solicita o movimento do jogador(0 a 6)
     def get_move(self) -> Optional[int]:
-        """
-        Solicita um movimento do jogador atual.
-        
-        Returns:
-            int: Número da coluna (0-6)
-           """
         current_player_name = self.game.get_current_player_name()
         valid_moves = self.game.get_valid_moves()
         
@@ -88,9 +76,8 @@ class UI:
             except ValueError:
                 print("Entrada inválida. Digite um número entre 0 e 6")
     
-
+    # Mostra resultado do Jogo
     def show_game_result(self):
-        """Exibe o resultado do jogo atual."""
         if self.game.is_game_over():
             if self.game.is_draw():
                 print("\nO jogo terminou em empate!")
@@ -99,9 +86,8 @@ class UI:
                 print(f"\nParabéns! {winner_name} venceu!")
     
 
-    
+    # Mostra o estado do jogo
     def display_game(self):
-        """Exibe o estado atual do jogo, incluindo o tabuleiro e informações dos jogadores."""
         self.clear_screen()
         print(f"{self.game.player_names[1]} (X) vs {self.game.player_names[2]} (O)\n")  # PLAYER_X = 1, PLAYER_O = 2
         
@@ -111,8 +97,8 @@ class UI:
         # Se o jogo terminou, mostrar o resultado
         if self.game.is_game_over():
             self.show_game_result()
-    
+
+    # Mensagem de erro para movimentos invalidos
     def show_move_error(self, error_message: str):
-        """Exibe mensagem de erro para movimentos inválidos."""
         print(f"Erro: {error_message}")
-        time.sleep(1.5)  # Pausa para o usuário ler a mensagem
+        time.sleep(1.5)

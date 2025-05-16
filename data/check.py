@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 
 # Caminho absoluto para o arquivo CSV
-csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'connect4_dataset.csv'))
+csv_path = os.path.abspath(os.path.join('../data/connect4_dataset.csv'))
 
 try:
     # Carregar o arquivo CSV

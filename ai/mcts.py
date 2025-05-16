@@ -15,8 +15,8 @@ class Node:
         # movimentos ainda não expandidos a partir deste nó
         self.untried_moves: list[int] = board.valid_moves()
 
+    # Seleciona filho com maior valor de UCT
     def uct_select_child(self, exploration_weight: float) -> "Node":
-        """Seleciona o filho com maior valor UCT."""
         log_parent = math.log(self.visits)
         best = max(
             self.children,
@@ -40,6 +40,7 @@ class MCTS:
         self.exploration_weight = exploration_weight
         self.max_children = max_children
 
+    # Implementação do Algoritmo de Monte Carlo
     def best_move(self, root_board: Board) -> int:
         root = Node(root_board.copy())
         player = root_board.current_player
@@ -86,12 +87,8 @@ class MCTS:
         best_child = max(root.children, key=lambda c: c.visits)
         return best_child.move
 
+    # Rollout com heuristica simples para tentar encontrar vitoria
     def _rollout(self, board: Board) -> Optional[int]:
-        """
-        Rollout simples com heurística de vitória imediata:
-        Se existir um movimento que leva à vitória do jogador atual, joga-o.
-        Caso contrário, escolhe aleatoriamente.
-        """
         while not board.is_game_over():
             moves = board.valid_moves()
             player = board.current_player
