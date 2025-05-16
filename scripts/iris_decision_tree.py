@@ -2,7 +2,7 @@ import pandas as pd
 from math import log2
 
 
-# --- Discretização automática por frequências ---
+# Discretização pelas frequências, divide igualmente pelo numero de bins
 def equal_frequency_discretization(df, columns, bins=3):
     result = df.copy()
     for col in columns:
@@ -10,14 +10,14 @@ def equal_frequency_discretization(df, columns, bins=3):
     return result
 
 
-# --- Cálculo da entropia ---
+# Cálculo entropia
 def entropy(series):
     counts = series.value_counts()
     probabilities = counts / len(series)
     return -sum(p * log2(p) for p in probabilities if p > 0)
 
 
-# --- Ganho de informação ---
+# Ganho de informação
 def info_gain(df, feature, target):
     total_entropy = entropy(df[target])
     values = df[feature].unique()
@@ -31,7 +31,7 @@ def info_gain(df, feature, target):
     return total_entropy - weighted_entropy
 
 
-# --- Nó da árvore ---
+# Nó
 class Node:
     def __init__(self, feature=None, prediction=None):
         self.feature = feature
@@ -39,7 +39,7 @@ class Node:
         self.children = {}
 
 
-# --- Algoritmo ID3 ---
+# Algoritmo ID3
 def id3(df, features, target):
     # Se todas as instâncias têm a mesma classe
     if len(df[target].unique()) == 1:
@@ -64,7 +64,7 @@ def id3(df, features, target):
     return root
 
 
-# --- Classificação ---
+# Classificação
 def predict(node, sample):
     while node.prediction is None:
         val = sample[node.feature]
@@ -75,13 +75,12 @@ def predict(node, sample):
     return node.prediction
 
 
-# --- Execução principal ---
 if __name__ == "__main__":
     df = pd.read_csv("../data/iris.csv")
     features = ['sepallength', 'sepalwidth', 'petallength', 'petalwidth']
     target = 'class'
 
-    # Discretização automática
+    # Discretização
     df_discretized = equal_frequency_discretization(df, features, bins=3)
 
     # Divisão em treino e teste
@@ -91,7 +90,7 @@ if __name__ == "__main__":
     # Construir árvore
     tree = id3(train, features, target)
 
-    # Avaliar acurácia
+    # Medir acurácia
     correct = sum(
         predict(tree, row) == row[target]
         for _, row in test.iterrows()

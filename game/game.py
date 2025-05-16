@@ -24,15 +24,14 @@ class Game:
 
     # Faz o movimento selecionado
     def make_move(self, column: int) -> bool:
-        try:
-            self.board.apply_move(column)
-            # Verificar se o jogo terminou após o movimento
-            if self.board.is_game_over():
-                self.current_game_active = False
-                
-            return True
-        except ValueError as e:
-            raise
+        # Aplica o movimento
+        self.board.apply_move(column)
+
+        # Verificar se o jogo terminou após o movimento
+        if self.board.is_game_over():
+            self.current_game_active = False
+
+        return True
 
     # Retorna lista com colunas disponiveis
     def get_valid_moves(self) -> List[int]:

@@ -66,5 +66,5 @@ def generate_dataset(
     print(f"Dataset salvo em: {path}")
 
 if __name__ == "__main__":
-    # Exemplo de uso: 500 jogos, 5000 simulações por jogada, sem limite de expansão
-    generate_dataset(n_games=20, iterations=50, max_children=None)
+    # Exemplo de uso: 1000 jogos, 10000 simulações por jogada, sem limite de expansão
+    generate_dataset(n_games=1000, iterations=10000, max_children=None)

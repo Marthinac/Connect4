@@ -5,15 +5,13 @@ import matplotlib.pyplot as plt
 # Caminho absoluto para o arquivo CSV
 csv_path = os.path.abspath(os.path.join('../data/connect4_dataset.csv'))
 
-try:
-    # Carregar o arquivo CSV
-    data = pd.read_csv(csv_path)
-    print("Primeiras linhas do dataset:")
-    print(data.head())
-    print("\nInformações sobre o dataset:")
-    print(data.info())
-except Exception as e:
-    print(f"Erro ao carregar o arquivo CSV: {e}")
+# Carregar o arquivo CSV
+data = pd.read_csv(csv_path)
+print("Primeiras linhas do dataset:")
+print(data.head())
+print("\nInformações sobre o dataset:")
+print(data.info())
+
     
 # Contagem dos movimentos realizados em cada coluna
 move_counts = data['move'].value_counts().sort_index()

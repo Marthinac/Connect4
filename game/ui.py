@@ -61,21 +61,23 @@ class UI:
     def get_move(self) -> Optional[int]:
         current_player_name = self.game.get_current_player_name()
         valid_moves = self.game.get_valid_moves()
-        
+
         while True:
-            try:
-                move = input(f"\n{current_player_name}, escolha uma coluna (0-6)")
-                # Converter para inteiro e validar
-                column = int(move)
-                if column not in valid_moves:
-                    print(f"Coluna {column} não está disponível. Escolha uma das colunas: {valid_moves}")
-                    continue
-                
-                return column
-                
-            except ValueError:
+            move_str = input(f"\n{current_player_name}, escolha uma coluna (0-6): ")
+
+            # Verifica se todos caracter é dígito
+            if not move_str.isdigit():
                 print("Entrada inválida. Digite um número entre 0 e 6")
-    
+                continue
+
+            column = int(move_str)
+            # Verifica se a coluna escolhida ta entre os movimentos válidos
+            if column not in valid_moves:
+                print(f"Coluna {column} não está disponível. Escolha uma das colunas: {valid_moves}")
+                continue
+
+            return column
+
     # Mostra resultado do Jogo
     def show_game_result(self):
         if self.game.is_game_over():
