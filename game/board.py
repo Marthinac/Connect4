@@ -22,9 +22,9 @@ class Board:
     # "Solta" peça na coluna
     def apply_move(self, column: int):
         if column not in range(COLS):
-            raise ValueError("Coluna fora do intervalo 0‑6.")
+            print(f"Coluna fora do intervalo 0‑6.")
         if self.board[0][column] != EMPTY:
-            raise ValueError("Coluna cheia – escolha outra.")
+            print(f"Coluna cheia – escolha outra.")
 
         for row in range(ROWS - 1, -1, -1):
             if self.board[row][column] == EMPTY:

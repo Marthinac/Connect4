@@ -28,7 +28,7 @@ def id3_ai(game_state, id3_model):
 
 #Instancia o Monte Carlo e com base no estado do board devolve a jogada considerada ótima
 def mcts_ai(game_state):
-    mcts = MCTS(iterations=300)
+    mcts = MCTS(iterations=500)
     return mcts.best_move(game_state.board)
 
 
