@@ -1,5 +1,5 @@
 import pandas as pd
-from ai.id3 import ID3Tree
+from id3 import ID3Tree
 
 # Discretização pelas frequências, divide igualmente pelo numero de bins
 def equal_frequency_discretization(df, columns, bins=3):

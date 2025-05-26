@@ -10,7 +10,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "ai"))
 
 #Carrega o Modelo treinado
 def load_id3_model():
-    model_path = os.path.join("ai/models/id3_model.pkl")
+    model_path = os.path.join("id3_model.pkl")
 
     # Carrega o modelo ID3
     with open(model_path, "rb") as file:

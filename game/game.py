@@ -3,10 +3,8 @@ from .board import Board, PLAYER_X, PLAYER_O
 
 
 class Game:
-    """
-    Classe responsável pela lógica do jogo Connect Four.
-    Gerencia o estado do jogo, histórico, jogadores e regras.
-    """
+    # Classe responsável pela lógica do jogo Connect Four.
+    # Gerencia o estado do jogo, histórico, jogadores e regras.
     def __init__(self):
         self.board = Board()
         self.player_names = {

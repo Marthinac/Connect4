@@ -3,10 +3,9 @@ import time
 from typing import Optional
 
 class UI:
-    """
-    Classe responsável pela interface do usuário do jogo Connect Four.
-    Gerencia a interação com o usuário, exibição de menus e do tabuleiro.
-    """
+    # Classe responsável pela interface do usuário do jogo Connect Four
+    # Gerencia a interação com o usuário, exibição de menus e do tabuleiro
+
     def __init__(self, game):
         self.game = game
 

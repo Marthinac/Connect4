@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import os, pickle
-from ai.id3 import ID3Tree
+from id3 import ID3Tree
 
 
 # Caminho correto para o notebook
@@ -50,7 +50,7 @@ accuracy = np.mean(y_pred == y_test) * 100
 print(f'Acurácia da Árvore ID3: {accuracy:.2f}%')
 
 # Caminho do arquivo do modelo
-model_path = os.path.join("../ai/models/id3_model.pkl")
+model_path = os.path.join("../id3_model.pkl")
 
 # Salvando o modelo treinado
 with open(model_path, "wb") as file:
